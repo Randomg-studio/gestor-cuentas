@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clientes - Gestor de Cuentas</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background: #f3f4f6; min-height: 100vh; }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .navbar h1 { font-size: 20px; }
+        .navbar a { color: white; text-decoration: none; margin-right: 16px; font-size: 14px; }
+        .navbar a:hover { text-decoration: underline; }
+        .navbar button {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        h2 { color: #333; font-size: 26px; }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-primary:hover { background: #5568d3; }
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            margin-right: 6px;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            background: #f9fafb;
+            color: #374151;
+            text-align: left;
+            padding: 14px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 14px;
+            color: #374151;
+        }
+        tr:hover { background: #f9fafb; }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-activo { background: #d1fae5; color: #065f46; }
+        .badge-pendiente { background: #fef3c7; color: #92400e; }
+        .badge-suspendido { background: #fee2e2; color: #991b1b; }
+        .badge-moroso { background: #fecaca; color: #7f1d1d; }
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+        .empty .icon { font-size: 48px; margin-bottom: 12px; }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: white;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 30px;
+        }
+        .modal h3 { color: #333; margin-bottom: 20px; font-size: 22px; }
+        .form-group { margin-bottom: 16px; }
+        label { display: block; color: #374151; font-weight: 500; margin-bottom: 6px; font-size: 14px; }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        textarea { resize: vertical; min-height: 70px; }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        .btn-cancel {
+            background: #e5e7eb;
+            color: #374151;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div style="display:flex; align-items:center;">
+            <h1 style="margin-right:24px;">🎯 Gestor</h1>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="clientes.html"><b>Clientes</b></a>
+            <a href="servicios.html">Servicios</a>
+            <a href="suscripciones.html">Suscripciones</a>
+            <a href="pagos.html">Pagos</a>
+        </div>
+        <button id="btn-logout">Cerrar sesión</button>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h2>👥 Clientes</h2>
+            <button class="btn-primary" id="btn-nuevo">+ Nuevo cliente</button>
+        </div>
+
+        <div class="card">
+            <table id="tabla-clientes">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>WhatsApp</th>
+                        <th>Usuario</th>
+                        <th>Estado</th>
+                        <th>Ingreso</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpo-tabla">
+                    <tr><td colspan="6" class="empty">Cargando...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal Nuevo/Editar Cliente -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal">
+            <h3 id="modal-titulo">Nuevo cliente</h3>
+            <input type="hidden" id="cliente-id">
+            
+            <div class="form-group">
+                <label>Nombre completo *</label>
+                <input type="text" id="campo-nombre" required>
+            </div>
+
+            <div class="form-group">
+                <label>WhatsApp / Teléfono</label>
+                <input type="text" id="campo-whatsapp" placeholder="+51 999 999 999">
+            </div>
+
+            <div class="form-group">
+                <label>Usuario / Red social</label>
+                <input type="text" id="campo-usuario" placeholder="@username">
+            </div>
+
+            <div class="form-group">
+                <label>Estado</label>
+                <select id="campo-estado">
+                    <option value="activo">Activo</option>
+                    <option value="pendiente">Pendiente</option>
+                    <option value="suspendido">Suspendido</option>
+                    <option value="moroso">Moroso</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Observaciones</label>
+                <textarea id="campo-observaciones" placeholder="Notas sobre el cliente..."></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-cancel" id="btn-cancelar">Cancelar</button>
+                <button class="btn-primary" id="btn-guardar">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'https://cnhiomoopbuufiffrpod.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNuaGlvbW9vcGJ1dWZpZmZycG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5MTM5MzEsImV4cCI6MjA5NTQ4OTkzMX0.-Mvkwz296Td4DwLlZ9_4rWb74cn1f9Mh7IVP8YkaaOo';
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Verificar sesión
+        window.addEventListener('load', async () => {
+            const { data: { session } } = await db.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+                return;
+            }
+            cargarClientes();
+        });
+
+        // Cargar lista de clientes
+        async function cargarClientes() {
+            const tbody = document.getElementById('cuerpo-tabla');
+            tbody.innerHTML = '<tr><td colspan="6" class="empty">Cargando...</td></tr>';
+
+            const { data, error } = await db
+                .from('clientes')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="6" class="empty">Error: ${error.message}</td></tr>`;
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `
+                    <tr><td colspan="6" class="empty">
+                        <div class="icon">📭</div>
+                        <div>No hay clientes todavía.<br>Haz clic en "Nuevo cliente" para empezar.</div>
+                    </td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = data.map(c => `
+                <tr>
+                    <td><b>${c.nombre}</b></td>
+                    <td>${c.whatsapp || '-'}</td>
+                    <td>${c.usuario_red || '-'}</td>
+                    <td><span class="badge badge-${c.estado}">${c.estado}</span></td>
+                    <td>${formatearFecha(c.fecha_ingreso)}</td>
+                    <td>
+                        <button class="btn-secondary" onclick="editarCliente(${c.id})">Editar</button>
+                        <button class="btn-danger" onclick="eliminarCliente(${c.id}, '${c.nombre.replace(/'/g, "\\'")}')">Eliminar</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function formatearFecha(fecha) {
+            if (!fecha) return '-';
+            const d = new Date(fecha);
+            return d.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        // Abrir modal para nuevo cliente
+        function abrirNuevo() {
+            document.getElementById('modal-titulo').textContent = 'Nuevo cliente';
+            document.getElementById('cliente-id').value = '';
+            document.getElementById('campo-nombre').value = '';
+            document.getElementById('campo-whatsapp').value = '';
+            document.getElementById('campo-usuario').value = '';
+            document.getElementById('campo-estado').value = 'activo';
+            document.getElementById('campo-observaciones').value = '';
+            document.getElementById('modal').classList.add('active');
+            setTimeout(() => document.getElementById('campo-nombre').focus(), 100);
+        }
+
+        // Abrir modal para editar
+        async function editarCliente(id) {
+            const { data, error } = await db
+                .from('clientes')
+                .select('*')
+                .eq('id', id)
+                .single();
+
+            if (error) {
+                alert('Error: ' + error.message);
+                return;
+            }
+
+            document.getElementById('modal-titulo').textContent = 'Editar cliente';
+            document.getElementById('cliente-id').value = data.id;
+            document.getElementById('campo-nombre').value = data.nombre || '';
+            document.getElementById('campo-whatsapp').value = data.whatsapp || '';
+            document.getElementById('campo-usuario').value = data.usuario_red || '';
+            document.getElementById('campo-estado').value = data.estado || 'activo';
+            document.getElementById('campo-observaciones').value = data.observaciones || '';
+            document.getElementById('modal').classList.add('active');
+        }
+
+        // Cerrar modal
+        function cerrarModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        // Guardar (crear o editar)
+        async function guardarCliente() {
+            const id = document.getElementById('cliente-id').value;
+            const nombre = document.getElementById('campo-nombre').value.trim();
+            const whatsapp = document.getElementById('campo-whatsapp').value.trim();
+            const usuario = document.getElementById('campo-usuario').value.trim();
+            const estado = document.getElementById('campo-estado').value;
+            const observaciones = document.getElementById('campo-observaciones').value.trim();
+
+            if (!nombre) {
+                alert('El nombre es obligatorio');
+                return;
+            }
+
+            const datos = {
+                nombre,
+                whatsapp: whatsapp || null,
+                usuario_red: usuario || null,
+                estado,
+                observaciones: observaciones || null
+            };
+
+            let error;
+            if (id) {
+                ({ error } = await db.from('clientes').update(datos).eq('id', id));
+            } else {
+                ({ error } = await db.from('clientes').insert(datos));
+            }
+
+            if (error) {
+                alert('Error: ' + error.message);
+                return;
+            }
+
+            cerrarModal();
+            cargarClientes();
+        }
+
+        // Eliminar cliente
+        async function eliminarCliente(id, nombre) {
+            if (!confirm(`¿Eliminar a "${nombre}"?\n\nEsto también eliminará sus suscripciones y pagos.`)) return;
+
+            const { error } = await db.from('clientes').delete().eq('id', id);
+            if (error) {
+                alert('Error: ' + error.message);
+                return;
+            }
+            cargarClientes();
+        }
+
+        // Cerrar sesión
+        async function cerrarSesion() {
+            await db.auth.signOut();
+            window.location.href = 'login.html';
+        }
+
+        // Eventos
+        document.getElementById('btn-nuevo').addEventListener('click', abrirNuevo);
+        document.getElementById('btn-cancelar').addEventListener('click', cerrarModal);
+        document.getElementById('btn-guardar').addEventListener('click', guardarCliente);
+        document.getElementById('btn-logout').addEventListener('click', cerrarSesion);
+        
+        // Cerrar modal al hacer clic fuera
+        document.getElementById('modal').addEventListener('click', (e) => {
+            if (e.target.id === 'modal') cerrarModal();
+        });
+    </script>
+</body>
+</html>
