@@ -122,7 +122,7 @@
             <input type="password" id="password" placeholder="••••••••" required>
         </div>
 
-        <button id="btn-login" onclick="iniciarSesion()">Iniciar sesión</button>
+        <button id="btn-login">Iniciar sesión</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -130,11 +130,11 @@
     <script>
         const SUPABASE_URL = 'https://cnhiomoopbuufiffrpod.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNuaGlvbW9vcGJ1dWZpZmZycG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5MTM5MzEsImV4cCI6MjA5NTQ4OTkzMX0.-Mvkwz296Td4DwLlZ9_4rWb74cn1f9Mh7IVP8YkaaOo';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // Si ya está logueado, ir directo al dashboard
         window.addEventListener('load', async () => {
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await db.auth.getSession();
             if (session) {
                 window.location.href = 'dashboard.html';
             }
@@ -160,7 +160,7 @@
             boton.textContent = 'Verificando...';
 
             try {
-                const { data, error } = await supabase.auth.signInWithPassword({
+                const { data, error } = await db.auth.signInWithPassword({
                     email: email,
                     password: password
                 });
@@ -179,7 +179,8 @@
             }
         }
 
-        // Permitir login con Enter
+        // Conectar eventos
+        document.getElementById('btn-login').addEventListener('click', iniciarSesion);
         document.getElementById('password').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') iniciarSesion();
         });
