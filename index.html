@@ -1,169 +1,700 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de Cuentas</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-        }
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        .container {
-            background: white;
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 500px;
-            width: 100%;
-            text-align: center;
-        }
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 28px;
-        }
-        .subtitle {
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-        .status {
-            background: #f5f5f5;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        .status-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-        }
-        .status-item:last-child {
-            border-bottom: none;
-        }
-        .status-label {
-            color: #333;
-            font-weight: 500;
-        }
-        .status-value {
-            color: #667eea;
-            font-weight: bold;
-        }
-        .ok { color: #10b981; }
-        .error { color: #ef4444; }
-        .loading { color: #f59e0b; }
-        button {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 10px;
-        }
-        button:hover {
-            background: #5568d3;
-        }
-        .footer {
-            margin-top: 20px;
-            font-size: 12px;
-            color: #999;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="System Pay">
+<meta name="theme-color" content="#0a0a0f">
+<title>System Pay</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f; --bg2: #12121a; --bg3: #1a1a26;
+    --card: #16161f; --border: #2a2a3a;
+    --accent: #7c6cfc; --accent2: #fc6c9a;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24; --blue: #60a5fa;
+    --text: #f0f0ff; --text2: #8888aa; --text3: #555577;
+    --radius: 16px; --radius-sm: 10px;
+    --font: 'Syne', sans-serif; --font2: 'DM Sans', sans-serif;
+    --nav-h: 72px; --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { width: 100%; height: 100%; background: var(--bg); color: var(--text); font-family: var(--font2); overflow: hidden; position: fixed; }
+  #app { width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+  
+  /* LOGIN SCREEN */
+  .login-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; flex: 1; }
+  .login-screen.hidden { display: none; }
+  .login-box { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px 24px; width: 100%; max-width: 380px; }
+  .login-logo { text-align: center; margin-bottom: 28px; }
+  .login-logo .name { font-family: var(--font); font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+  .login-logo .name span { color: var(--accent); }
+  .login-logo .sub { color: var(--text2); font-size: 13px; margin-top: 4px; }
+  .login-msg { padding: 10px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 13px; display: none; }
+  .login-msg.error { background: rgba(248,113,113,0.12); color: var(--red); border: 1px solid rgba(248,113,113,0.3); display: block; }
+  .login-msg.ok { background: rgba(74,222,128,0.12); color: var(--green); border: 1px solid rgba(74,222,128,0.3); display: block; }
+  
+  .screen { display: none; flex-direction: column; flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 16px); }
+  .screen.active { display: flex; }
+  .topbar { padding: 24px 20px 16px; }
+  .topbar h1 { font-family: var(--font); font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+  .topbar h1 span { color: var(--accent); }
+  .topbar p { color: var(--text2); font-size: 13px; margin-top: 2px; }
+  
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: calc(var(--nav-h) + var(--safe-bottom)); background: var(--bg2); border-top: 1px solid var(--border); display: flex; align-items: flex-start; padding-top: 10px; z-index: 100; }
+  .bottom-nav.hidden { display: none; }
+  .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; padding: 6px 4px; border: none; background: none; }
+  .nav-btn .nav-icon { width: 42px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 14px; transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1); font-size: 18px; }
+  .nav-btn.active .nav-icon { background: var(--accent); transform: scale(1.08); }
+  .nav-btn span { font-size: 10px; font-weight: 500; color: var(--text2); letter-spacing: 0.3px; }
+  .nav-btn.active span { color: var(--accent); }
+  
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin: 0 16px 12px; }
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 16px; margin-bottom: 12px; }
+  .stat-box { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 12px; position: relative; overflow: hidden; }
+  .stat-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+  .stat-box.green::before { background: var(--green); }
+  .stat-box.red::before { background: var(--red); }
+  .stat-box.yellow::before { background: var(--yellow); }
+  .stat-box.blue::before { background: var(--blue); }
+  .stat-box .label { font-size: 10px; color: var(--text2); font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+  .stat-box .value { font-family: var(--font); font-size: 22px; font-weight: 800; line-height: 1; }
+  .stat-box .sub { font-size: 10px; color: var(--text2); margin-top: 4px; }
+  .stat-box.green .value { color: var(--green); }
+  .stat-box.red .value { color: var(--red); }
+  .stat-box.yellow .value { color: var(--yellow); }
+  .stat-box.blue .value { color: var(--blue); }
+  
+  .list-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+  .list-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .list-item:active { opacity: 0.6; }
+  .list-item .avatar { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; font-weight: 700; background: var(--bg3); }
+  .list-item .info { flex: 1; min-width: 0; }
+  .list-item .info .name { font-family: var(--font); font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .list-item .info .sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .list-item .right { text-align: right; flex-shrink: 0; }
+  .list-item .right .amount { font-family: var(--font); font-size: 15px; font-weight: 700; }
+  .list-item .right .status { font-size: 11px; margin-top: 2px; }
+  
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge.green { background: rgba(74,222,128,0.15); color: var(--green); }
+  .badge.red { background: rgba(248,113,113,0.15); color: var(--red); }
+  .badge.yellow { background: rgba(251,191,36,0.15); color: var(--yellow); }
+  .badge.blue { background: rgba(96,165,250,0.15); color: var(--blue); }
+  
+  .fab { position: fixed; bottom: calc(var(--nav-h) + var(--safe-bottom) + 16px); right: 20px; width: 52px; height: 52px; border-radius: 16px; background: var(--accent); border: none; color: white; font-size: 24px; cursor: pointer; z-index: 50; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(124,108,252,0.4); }
+  .fab:active { transform: scale(0.92); }
+  .fab.hidden { display: none; }
+  
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: none; align-items: flex-end; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--bg2); border-radius: 24px 24px 0 0; width: 100%; max-height: 92vh; overflow-y: auto; padding: 0 0 calc(24px + var(--safe-bottom)); animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 12px auto 0; }
+  .modal-header { padding: 16px 20px 12px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+  .modal-header h2 { font-family: var(--font); font-size: 18px; font-weight: 700; }
+  .modal-close { width: 32px; height: 32px; border-radius: 10px; background: var(--bg3); border: none; color: var(--text2); font-size: 16px; cursor: pointer; }
+  .modal-body { padding: 16px 20px; }
+  
+  .form-group { margin-bottom: 16px; }
+  .form-label { display: block; font-size: 11px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .form-input, .form-select { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; color: var(--text); font-size: 15px; outline: none; appearance: none; -webkit-appearance: none; font-family: inherit; }
+  .form-input:focus, .form-select:focus { border-color: var(--accent); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .btn-primary { width: 100%; padding: 14px; background: var(--accent); border: none; border-radius: var(--radius-sm); color: white; font-family: var(--font); font-size: 15px; font-weight: 700; cursor: pointer; letter-spacing: 0.3px; }
+  .btn-primary:active { opacity: 0.8; }
+  .btn-primary:disabled { opacity: 0.5; }
+  .btn-danger { width: 100%; padding: 12px; background: rgba(248,113,113,0.12); border: 1px solid rgba(248,113,113,0.3); border-radius: var(--radius-sm); color: var(--red); font-family: var(--font); font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 10px; }
+  
+  .section-label { font-family: var(--font); font-size: 11px; font-weight: 700; color: var(--text2); letter-spacing: 1.5px; text-transform: uppercase; padding: 16px 16px 8px; }
+  .empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 24px; text-align: center; }
+  .empty .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.6; }
+  .empty h3 { font-family: var(--font); font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .empty p { color: var(--text2); font-size: 13px; line-height: 1.5; }
+  
+  .logo-header { padding: 24px 20px 8px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { font-family: var(--font); font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+  .logo span { color: var(--accent); }
+  .logout-btn { background: var(--bg3); border: 1px solid var(--border); color: var(--text2); border-radius: 8px; padding: 6px 12px; font-size: 12px; cursor: pointer; }
+  
+  .month-selector { display: flex; align-items: center; gap: 8px; padding: 0 16px 12px; }
+  .month-btn { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; color: var(--text2); font-size: 18px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .month-label { flex: 1; text-align: center; font-family: var(--font); font-size: 15px; font-weight: 700; }
+  
+  .progress-bar { height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; margin-top: 8px; }
+  .progress-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
+  
+  .chip-tabs { display: flex; gap: 8px; padding: 0 16px 12px; overflow-x: auto; scrollbar-width: none; }
+  .chip-tabs::-webkit-scrollbar { display: none; }
+  .chip { padding: 6px 14px; border-radius: 20px; white-space: nowrap; font-size: 12px; font-weight: 600; border: 1px solid var(--border); background: var(--card); color: var(--text2); cursor: pointer; flex-shrink: 0; }
+  .chip.active { background: var(--accent); border-color: var(--accent); color: white; }
+  
+  .service-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin: 0 16px 12px; cursor: pointer; position: relative; overflow: hidden; }
+  .service-card::after { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--accent); }
+  .service-card.green::after { background: var(--green); }
+  .service-card.yellow::after { background: var(--yellow); }
+  .service-card .s-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .service-card .s-name { font-family: var(--font); font-size: 16px; font-weight: 700; }
+  .service-card .s-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .service-card .s-stat { text-align: center; }
+  .service-card .s-stat .sv { font-family: var(--font); font-size: 15px; font-weight: 700; }
+  .service-card .s-stat .sk { font-size: 10px; color: var(--text2); margin-top: 2px; }
+  
+  #toast { position: fixed; top: 60px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; padding: 10px 18px; font-size: 13px; font-weight: 600; z-index: 999; opacity: 0; transition: all 0.3s; white-space: nowrap; pointer-events: none; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎯 Gestor de Cuentas</h1>
-        <p class="subtitle">Sistema de gestión de clientes y servicios</p>
-        
-        <div class="status">
-            <div class="status-item">
-                <span class="status-label">Conexión Supabase:</span>
-                <span class="status-value loading" id="conexion">Verificando...</span>
-            </div>
-            <div class="status-item">
-                <span class="status-label">Total clientes:</span>
-                <span class="status-value" id="total-clientes">-</span>
-            </div>
-            <div class="status-item">
-                <span class="status-label">Total servicios:</span>
-                <span class="status-value" id="total-servicios">-</span>
-            </div>
-        </div>
 
-        <button onclick="probarConexion()">🔄 Probar conexión</button>
+<div id="app">
 
-        <p class="footer">v0.1 - Setup inicial</p>
+  <!-- LOGIN -->
+  <div class="login-screen" id="login-screen">
+    <div class="login-box">
+      <div class="login-logo">
+        <div class="name">System<span>Pay</span></div>
+        <div class="sub">Inicia sesión para continuar</div>
+      </div>
+      <div class="login-msg" id="login-msg"></div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" id="login-email" placeholder="tu@email.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contraseña</label>
+        <input type="password" class="form-input" id="login-password" placeholder="••••••••">
+      </div>
+      <button class="btn-primary" id="login-btn">Iniciar sesión</button>
     </div>
+  </div>
 
-    <!-- Librería de Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <script>
-        // ===== CONFIGURACIÓN DE SUPABASE =====
-        const SUPABASE_URL = 'https://cnhiomoopbuufiffrpod.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNuaGlvbW9vcGJ1dWZpZmZycG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5MTM5MzEsImV4cCI6MjA5NTQ4OTkzMX0.-Mvkwz296Td4DwLlZ9_4rWb74cn1f9Mh7IVP8YkaaOo';
-        
-        // Crear cliente de Supabase
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  <!-- DASHBOARD -->
+  <div class="screen" id="screen-dashboard">
+    <div class="logo-header">
+      <div>
+        <div class="logo">System<span>Pay</span></div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px" id="dash-date"></div>
+      </div>
+      <button class="logout-btn" id="btn-logout">Salir</button>
+    </div>
+    <div class="month-selector">
+      <button class="month-btn" id="month-prev">‹</button>
+      <div class="month-label" id="month-label"></div>
+      <button class="month-btn" id="month-next">›</button>
+    </div>
+    <div class="stat-grid" id="dash-stats"></div>
+    <div class="section-label">🚨 Cobrar hoy</div>
+    <div class="card" id="dash-today"></div>
+    <div class="section-label">🔴 Atrasados</div>
+    <div class="card" id="dash-late"></div>
+    <div class="section-label">⏰ Esta semana</div>
+    <div class="card" id="dash-week"></div>
+  </div>
 
-        // ===== FUNCIÓN PARA PROBAR CONEXIÓN =====
-        async function probarConexion() {
-            const conexionEl = document.getElementById('conexion');
-            const clientesEl = document.getElementById('total-clientes');
-            const serviciosEl = document.getElementById('total-servicios');
-            
-            conexionEl.textContent = 'Verificando...';
-            conexionEl.className = 'status-value loading';
+  <!-- PAGOS -->
+  <div class="screen" id="screen-pagos">
+    <div class="topbar"><h1>Pago<span>s</span></h1><p id="pagos-subtitle"></p></div>
+    <div class="chip-tabs" id="pagos-tabs">
+      <div class="chip active" data-f="todos">Todos</div>
+      <div class="chip" data-f="🔴 Atrasado">🔴 Atrasados</div>
+      <div class="chip" data-f="⏰ Pendiente">⏰ Pendientes</div>
+      <div class="chip" data-f="✅ Pagado">✅ Pagados</div>
+      <div class="chip" data-f="💰 Adelantado">💰 Adelantados</div>
+    </div>
+    <div id="pagos-list"></div>
+  </div>
 
-            try {
-                // Contar clientes
-                const { count: clientes, error: errCli } = await supabase
-                    .from('clientes')
-                    .select('*', { count: 'exact', head: true });
-                
-                if (errCli) throw errCli;
+  <!-- CLIENTES -->
+  <div class="screen" id="screen-clientes">
+    <div class="topbar"><h1>Cliente<span>s</span></h1><p id="clientes-subtitle"></p></div>
+    <div class="chip-tabs" id="clientes-tabs">
+      <div class="chip active" data-f="todos">Todos</div>
+      <div class="chip" data-f="🟢 Activo">🟢 Activos</div>
+      <div class="chip" data-f="🔴 Moroso">🔴 Morosos</div>
+      <div class="chip" data-f="⭐ VIP">⭐ VIP</div>
+    </div>
+    <div id="clientes-list"></div>
+  </div>
 
-                // Contar servicios
-                const { count: servicios, error: errServ } = await supabase
-                    .from('servicios')
-                    .select('*', { count: 'exact', head: true });
-                
-                if (errServ) throw errServ;
+  <!-- SERVICIOS -->
+  <div class="screen" id="screen-servicios">
+    <div class="topbar"><h1>Servicio<span>s</span></h1><p id="servicios-subtitle"></p></div>
+    <div id="servicios-list"></div>
+  </div>
 
-                // Si todo bien
-                conexionEl.textContent = '✅ Conectado';
-                conexionEl.className = 'status-value ok';
-                clientesEl.textContent = clientes ?? 0;
-                serviciosEl.textContent = servicios ?? 0;
-                
-            } catch (error) {
-                conexionEl.textContent = '❌ Error';
-                conexionEl.className = 'status-value error';
-                clientesEl.textContent = '-';
-                serviciosEl.textContent = '-';
-                console.error('Error:', error);
-                alert('Error al conectar: ' + error.message);
-            }
-        }
+  <!-- GASTOS -->
+  <div class="screen" id="screen-gastos">
+    <div class="topbar"><h1>Gasto<span>s</span></h1><p id="gastos-subtitle"></p></div>
+    <div id="gastos-list"></div>
+  </div>
 
-        // Probar conexión al cargar la página
-        window.addEventListener('load', probarConexion);
-    </script>
+  <nav class="bottom-nav hidden" id="bottom-nav">
+    <button class="nav-btn active" data-screen="dashboard"><div class="nav-icon">🏠</div><span>Inicio</span></button>
+    <button class="nav-btn" data-screen="pagos"><div class="nav-icon">💳</div><span>Pagos</span></button>
+    <button class="nav-btn" data-screen="clientes"><div class="nav-icon">👥</div><span>Clientes</span></button>
+    <button class="nav-btn" data-screen="servicios"><div class="nav-icon">📦</div><span>Servicios</span></button>
+    <button class="nav-btn" data-screen="gastos"><div class="nav-icon">💸</div><span>Gastos</span></button>
+  </nav>
+
+  <button class="fab hidden" id="fab">＋</button>
+</div>
+
+<!-- MODALES -->
+<div class="modal-overlay" id="modal-servicio">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header"><h2 id="modal-servicio-title">Nuevo Servicio</h2><button class="modal-close" data-close="modal-servicio">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Nombre</label><input type="text" class="form-input" id="sv-nombre" placeholder="Ej: Netflix, Adobe..."></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Categoría</label><select class="form-select" id="sv-categoria"><option>Streaming</option><option>Creatividad</option><option>Productividad</option><option>Otro</option></select></div>
+        <div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="sv-tipo"><option>Individual</option><option>Compartida</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Costo (S/.)</label><input type="number" class="form-input" id="sv-costo" placeholder="0.00"></div>
+        <div class="form-group"><label class="form-label">Precio venta (S/.)</label><input type="number" class="form-input" id="sv-precio" placeholder="0.00"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Máx. clientes</label><input type="number" class="form-input" id="sv-max" placeholder="1"></div>
+        <div class="form-group"><label class="form-label">Renovación</label><input type="date" class="form-input" id="sv-renovacion"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Notas</label><input type="text" class="form-input" id="sv-notas" placeholder="Info interna..."></div>
+      <button class="btn-primary" id="sv-save">Guardar servicio</button>
+      <button class="btn-danger" id="sv-delete" style="display:none">Eliminar servicio</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-cliente">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header"><h2 id="modal-cliente-title">Nuevo Cliente</h2><button class="modal-close" data-close="modal-cliente">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Nombre completo</label><input type="text" class="form-input" id="cl-nombre" placeholder="Nombre"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Alias</label><input type="text" class="form-input" id="cl-alias" placeholder="Opcional"></div>
+        <div class="form-group"><label class="form-label">WhatsApp</label><input type="tel" class="form-input" id="cl-contacto" placeholder="9XXXXXXXX"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Servicio</label><select class="form-select" id="cl-servicio"></select></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Precio (S/.)</label><input type="number" class="form-input" id="cl-precio" placeholder="0.00"></div>
+        <div class="form-group"><label class="form-label">Día de pago</label><input type="number" class="form-input" id="cl-dia" placeholder="1-31" min="1" max="31"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Estado</label><select class="form-select" id="cl-estado"><option>🟢 Activo</option><option>🔴 Moroso</option><option>🟡 Suspendido</option><option>⭐ VIP</option></select></div>
+        <div class="form-group"><label class="form-label">Comportamiento</label><select class="form-select" id="cl-comportamiento"><option>✅ Puntual</option><option>⏰ Tarde</option><option>💰 Adelanta</option></select></div>
+      </div>
+      <div class="form-group"><label class="form-label">Fecha de inicio</label><input type="date" class="form-input" id="cl-inicio"></div>
+      <div class="form-group"><label class="form-label">Notas</label><input type="text" class="form-input" id="cl-notas" placeholder="Observaciones..."></div>
+      <button class="btn-primary" id="cl-save">Guardar cliente</button>
+      <button class="btn-danger" id="cl-delete" style="display:none">Eliminar cliente</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-pago">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header"><h2 id="modal-pago-title">Registrar Pago</h2><button class="modal-close" data-close="modal-pago">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Cliente</label><select class="form-select" id="pg-cliente"></select></div>
+      <div class="form-group"><label class="form-label">Servicio</label><select class="form-select" id="pg-servicio"></select></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Mes</label><select class="form-select" id="pg-mes"><option>Enero</option><option>Febrero</option><option>Marzo</option><option>Abril</option><option>Mayo</option><option>Junio</option><option>Julio</option><option>Agosto</option><option>Septiembre</option><option>Octubre</option><option>Noviembre</option><option>Diciembre</option></select></div>
+        <div class="form-group"><label class="form-label">Año</label><input type="number" class="form-input" id="pg-anio"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Fecha esperada</label><input type="date" class="form-input" id="pg-fecha-esperada"></div>
+        <div class="form-group"><label class="form-label">Fecha real</label><input type="date" class="form-input" id="pg-fecha-real"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Monto esperado</label><input type="number" class="form-input" id="pg-monto-esperado" placeholder="0.00"></div>
+        <div class="form-group"><label class="form-label">Monto pagado</label><input type="number" class="form-input" id="pg-monto-pagado" placeholder="0.00"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Meses cubiertos</label><input type="number" class="form-input" id="pg-meses" value="1" min="1"></div>
+        <div class="form-group"><label class="form-label">Método</label><select class="form-select" id="pg-metodo"><option>Yape</option><option>Plin</option><option>Efectivo</option><option>Transferencia</option><option>Otro</option></select></div>
+      </div>
+      <div class="form-group"><label class="form-label">Notas</label><input type="text" class="form-input" id="pg-notas" placeholder="Acuerdos..."></div>
+      <button class="btn-primary" id="pg-save">Guardar pago</button>
+      <button class="btn-danger" id="pg-delete" style="display:none">Eliminar pago</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-gasto">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header"><h2 id="modal-gasto-title">Nuevo Gasto</h2><button class="modal-close" data-close="modal-gasto">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Servicio</label><select class="form-select" id="gs-servicio"></select></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Mes</label><select class="form-select" id="gs-mes"><option>Enero</option><option>Febrero</option><option>Marzo</option><option>Abril</option><option>Mayo</option><option>Junio</option><option>Julio</option><option>Agosto</option><option>Septiembre</option><option>Octubre</option><option>Noviembre</option><option>Diciembre</option></select></div>
+        <div class="form-group"><label class="form-label">Año</label><input type="number" class="form-input" id="gs-anio"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Monto (S/.)</label><input type="number" class="form-input" id="gs-monto" placeholder="0.00"></div>
+        <div class="form-group"><label class="form-label">Método</label><select class="form-select" id="gs-metodo"><option>Tarjeta</option><option>PayPal</option><option>Yape</option><option>Transferencia</option><option>Otro</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Fecha</label><input type="date" class="form-input" id="gs-fecha"></div>
+        <div class="form-group"><label class="form-label">Vencimiento</label><input type="date" class="form-input" id="gs-vencimiento"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Notas</label><input type="text" class="form-input" id="gs-notas" placeholder="Observaciones..."></div>
+      <button class="btn-primary" id="gs-save">Guardar gasto</button>
+      <button class="btn-danger" id="gs-delete" style="display:none">Eliminar gasto</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-add">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header"><h2>¿Qué quieres agregar?</h2><button class="modal-close" data-close="modal-add">✕</button></div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <button class="add-opt" data-add="pago" style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:20px;color:var(--text);cursor:pointer;text-align:center"><div style="font-size:28px;margin-bottom:8px">💳</div><div style="font-family:var(--font);font-weight:700">Pago</div></button>
+        <button class="add-opt" data-add="cliente" style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:20px;color:var(--text);cursor:pointer;text-align:center"><div style="font-size:28px;margin-bottom:8px">👤</div><div style="font-family:var(--font);font-weight:700">Cliente</div></button>
+        <button class="add-opt" data-add="servicio" style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:20px;color:var(--text);cursor:pointer;text-align:center"><div style="font-size:28px;margin-bottom:8px">📦</div><div style="font-family:var(--font);font-weight:700">Servicio</div></button>
+        <button class="add-opt" data-add="gasto" style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:20px;color:var(--text);cursor:pointer;text-align:center"><div style="font-size:28px;margin-bottom:8px">💸</div><div style="font-family:var(--font);font-weight:700">Gasto</div></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// CONFIG
+const SUPABASE_URL = 'https://cnhiomoopbuufiffrpod.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNuaGlvbW9vcGJ1dWZpZmZycG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5MTM5MzEsImV4cCI6MjA5NTQ4OTkzMX0.-Mvkwz296Td4DwLlZ9_4rWb74cn1f9Mh7IVP8YkaaOo';
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// CACHE LOCAL
+let cache = { servicios: [], clientes: [], pagos: [], gastos: [] };
+let currentScreen = 'dashboard';
+let currentMonth = new Date().getMonth();
+let currentYear = new Date().getFullYear();
+let editingId = null;
+let pagosFilter = 'todos';
+let clientesFilter = 'todos';
+const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+// LOGIN
+async function login() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const msg = document.getElementById('login-msg');
+  const btn = document.getElementById('login-btn');
+  if (!email || !password) { msg.textContent = 'Completa email y contraseña'; msg.className = 'login-msg error'; return; }
+  btn.disabled = true; btn.textContent = 'Verificando...';
+  try {
+    const { error } = await db.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    msg.textContent = '✅ Bienvenido'; msg.className = 'login-msg ok';
+    setTimeout(initApp, 500);
+  } catch (e) {
+    msg.textContent = '❌ ' + e.message; msg.className = 'login-msg error';
+    btn.disabled = false; btn.textContent = 'Iniciar sesión';
+  }
+}
+
+async function logout() {
+  await db.auth.signOut();
+  location.reload();
+}
+
+async function initApp() {
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('screen-dashboard').classList.add('active');
+  document.getElementById('bottom-nav').classList.remove('hidden');
+  document.getElementById('fab').classList.remove('hidden');
+  await loadAll();
+  render();
+}
+
+async function loadAll() {
+  const [s, c, p, g] = await Promise.all([
+    db.from('servicios').select('*'),
+    db.from('clientes').select('*'),
+    db.from('pagos').select('*'),
+    db.from('gastos').select('*')
+  ]);
+  cache.servicios = (s.data || []).map(mapServicioFromDb);
+  cache.clientes = (c.data || []).map(mapClienteFromDb);
+  cache.pagos = (p.data || []).map(mapPagoFromDb);
+  cache.gastos = (g.data || []).map(mapGastoFromDb);
+}
+
+// MAPEO BD → JS
+function mapServicioFromDb(s) { return { id: s.id, nombre: s.nombre, categoria: s.categoria, tipo: s.tipo, costoMensual: parseFloat(s.costo_mensual)||0, precioVenta: parseFloat(s.precio_venta)||0, maxClientes: s.max_clientes||1, renovacion: s.renovacion, notas: s.notas }; }
+function mapClienteFromDb(c) { return { id: c.id, nombre: c.nombre, alias: c.alias, contacto: c.contacto, servicioId: c.servicio_id, precioAcordado: parseFloat(c.precio_acordado)||0, diaPago: c.dia_pago||1, estado: c.estado, comportamiento: c.comportamiento, fechaInicio: c.fecha_inicio, notas: c.notas }; }
+function mapPagoFromDb(p) { return { id: p.id, clienteId: p.cliente_id, servicioId: p.servicio_id, mesCorrespondiente: p.mes_correspondiente, anio: p.anio, fechaEsperada: p.fecha_esperada, fechaReal: p.fecha_real, montoEsperado: parseFloat(p.monto_esperado)||0, montoPagado: parseFloat(p.monto_pagado)||0, mesesCubiertos: p.meses_cubiertos||1, metodo: p.metodo, notas: p.notas }; }
+function mapGastoFromDb(g) { return { id: g.id, servicioId: g.servicio_id, mes: g.mes, anio: g.anio, monto: parseFloat(g.monto)||0, metodo: g.metodo, fecha: g.fecha, vencimiento: g.vencimiento, notas: g.notas }; }
+
+// NAV
+function navigate(screen) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + screen).classList.add('active');
+  document.querySelector('.nav-btn[data-screen="'+screen+'"]').classList.add('active');
+  currentScreen = screen;
+  render();
+}
+
+function changeMonth(d) {
+  currentMonth += d;
+  if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+  if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+  render();
+}
+
+function getEstado(pago) {
+  const now = new Date();
+  if (!pago.fechaReal) {
+    const esp = new Date(pago.fechaEsperada);
+    return now > esp ? '🔴 Atrasado' : '⏰ Pendiente';
+  }
+  const esperado = (pago.montoEsperado || 0) * (pago.mesesCubiertos || 1);
+  if (pago.montoPagado >= esperado) return pago.mesesCubiertos > 1 ? '💰 Adelantado' : '✅ Pagado';
+  return '⚠️ Parcial';
+}
+function estadoBadgeClass(e) { if(e.includes('Atrasado'))return'red'; if(e.includes('Pendiente'))return'yellow'; if(e.includes('Pagado'))return'green'; if(e.includes('Adelantado'))return'blue'; return'yellow'; }
+function diasRetraso(p) { if(!p.fechaReal&&p.fechaEsperada){return Math.max(0,Math.floor((new Date()-new Date(p.fechaEsperada))/86400000));}return 0; }
+
+// RENDER
+function render() { renderDashboard(); renderPagos(); renderClientes(); renderServicios(); renderGastos(); }
+
+function renderDashboard() {
+  document.getElementById('dash-date').textContent = new Date().toLocaleDateString('es-PE', {weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('month-label').textContent = MONTHS[currentMonth] + ' ' + currentYear;
+  const pagos = cache.pagos.filter(p => { const d = new Date(p.fechaEsperada); return d.getMonth()===currentMonth && d.getFullYear()===currentYear; });
+  const gastos = cache.gastos.filter(g => g.mes === MONTHS[currentMonth] && parseInt(g.anio) === currentYear);
+  const ingresosReales = pagos.filter(p => ['✅ Pagado','💰 Adelantado'].includes(getEstado(p))).reduce((s,p)=>s+(p.montoPagado||0),0);
+  const ingresosEsperados = pagos.reduce((s,p)=>s+(p.montoEsperado||0)*(p.mesesCubiertos||1),0);
+  const gastosTotal = gastos.reduce((s,g)=>s+(g.monto||0),0);
+  const gananciaNeta = ingresosReales - gastosTotal;
+  const porCobrar = ingresosEsperados - ingresosReales;
+  document.getElementById('dash-stats').innerHTML = `
+    <div class="stat-box green"><div class="label">Ingresos reales</div><div class="value">S/. ${ingresosReales.toFixed(0)}</div><div class="sub">cobrado este mes</div></div>
+    <div class="stat-box blue"><div class="label">Esperados</div><div class="value">S/. ${ingresosEsperados.toFixed(0)}</div><div class="sub">total del mes</div></div>
+    <div class="stat-box ${gananciaNeta>=0?'green':'red'}"><div class="label">Ganancia neta</div><div class="value">S/. ${gananciaNeta.toFixed(0)}</div><div class="sub">ingresos − gastos</div></div>
+    <div class="stat-box yellow"><div class="label">Por cobrar</div><div class="value">S/. ${Math.max(0,porCobrar).toFixed(0)}</div><div class="sub">pendiente</div></div>`;
+  const today = new Date().toISOString().split('T')[0];
+  const hoy = pagos.filter(p => p.fechaEsperada === today && !p.fechaReal);
+  document.getElementById('dash-today').innerHTML = hoy.length ? hoy.map(pagoListItem).join('') : '<div style="color:var(--text2);font-size:13px;text-align:center;padding:12px">✨ Sin cobros hoy</div>';
+  const atrasados = cache.pagos.filter(p => getEstado(p) === '🔴 Atrasado').sort((a,b)=>diasRetraso(b)-diasRetraso(a));
+  document.getElementById('dash-late').innerHTML = atrasados.length ? atrasados.slice(0,5).map(pagoListItem).join('') : '<div style="color:var(--text2);font-size:13px;text-align:center;padding:12px">✅ Sin atrasos</div>';
+  const in7 = new Date(); in7.setDate(in7.getDate()+7);
+  const semana = cache.pagos.filter(p => { const d=new Date(p.fechaEsperada); return d>=new Date() && d<=in7 && getEstado(p)==='⏰ Pendiente'; }).sort((a,b)=>new Date(a.fechaEsperada)-new Date(b.fechaEsperada));
+  document.getElementById('dash-week').innerHTML = semana.length ? semana.map(pagoListItem).join('') : '<div style="color:var(--text2);font-size:13px;text-align:center;padding:12px">⏰ Nada esta semana</div>';
+}
+
+function pagoListItem(pago) {
+  const cliente = cache.clientes.find(c => c.id === pago.clienteId);
+  const servicio = cache.servicios.find(s => s.id === pago.servicioId);
+  const estado = getEstado(pago);
+  const dias = diasRetraso(pago);
+  const sub = dias > 0 ? `${dias} días de retraso` : (pago.mesCorrespondiente || '');
+  return `<div class="list-item" data-edit-pago="${pago.id}">
+    <div class="avatar">${(cliente?.nombre||'?')[0].toUpperCase()}</div>
+    <div class="info"><div class="name">${cliente?.nombre||'Cliente'}</div><div class="sub">${servicio?.nombre||''} · ${sub}</div></div>
+    <div class="right"><div class="amount" style="color:${estado.includes('Atrasado')?'var(--red)':estado.includes('Pagado')||estado.includes('Adelantado')?'var(--green)':'var(--yellow)'}">S/. ${(pago.montoPagado||pago.montoEsperado||0).toFixed(0)}</div><div class="status"><span class="badge ${estadoBadgeClass(estado)}">${estado}</span></div></div>
+  </div>`;
+}
+
+function renderPagos() {
+  const pagos = cache.pagos.filter(p => pagosFilter==='todos' || getEstado(p)===pagosFilter).sort((a,b)=>new Date(b.fechaEsperada)-new Date(a.fechaEsperada));
+  document.getElementById('pagos-subtitle').textContent = `${pagos.length} registro${pagos.length!==1?'s':''}`;
+  document.getElementById('pagos-list').innerHTML = pagos.length ? pagos.map(p=>`<div style="margin:0 16px 10px"><div class="card" style="margin:0">${pagoListItem(p)}</div></div>`).join('') : `<div class="empty"><div class="icon">💳</div><h3>Sin pagos</h3><p>Toca + para registrar</p></div>`;
+}
+
+function renderClientes() {
+  const clientes = cache.clientes.filter(c => clientesFilter==='todos' || c.estado===clientesFilter);
+  document.getElementById('clientes-subtitle').textContent = `${clientes.length} cliente${clientes.length!==1?'s':''}`;
+  if(!clientes.length){document.getElementById('clientes-list').innerHTML=`<div class="empty"><div class="icon">👥</div><h3>Sin clientes</h3><p>Toca + para agregar</p></div>`;return;}
+  document.getElementById('clientes-list').innerHTML = clientes.map(c => {
+    const servicio = cache.servicios.find(s => s.id === c.servicioId);
+    const totalPagado = cache.pagos.filter(p => p.clienteId===c.id && ['✅ Pagado','💰 Adelantado'].includes(getEstado(p))).reduce((s,p)=>s+(p.montoPagado||0),0);
+    const estadoColor = c.estado?.includes('Activo')?'var(--green)':c.estado?.includes('Moroso')?'var(--red)':c.estado?.includes('VIP')?'var(--yellow)':'var(--text2)';
+    return `<div class="card" data-edit-cliente="${c.id}">
+      <div class="list-item" style="border:none;padding:0">
+        <div class="avatar" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:white">${c.nombre[0].toUpperCase()}</div>
+        <div class="info"><div class="name">${c.nombre}${c.alias?` <span style="color:var(--text2);font-weight:400;font-size:12px">(${c.alias})</span>`:''}</div><div class="sub">${servicio?.nombre||'Sin servicio'} · Día ${c.diaPago||'?'}</div></div>
+        <div class="right"><div style="font-family:var(--font);font-size:14px;font-weight:700;color:var(--green)">S/. ${totalPagado.toFixed(0)}</div><div style="font-size:11px;color:${estadoColor};margin-top:2px">${c.estado||''}</div></div>
+      </div>
+      ${c.contacto?`<div style="margin-top:10px"><a href="https://wa.me/51${c.contacto}" target="_blank" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;gap:6px;background:rgba(37,211,102,0.12);border:1px solid rgba(37,211,102,0.3);color:#25D366;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;text-decoration:none">📱 WhatsApp</a></div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function renderServicios() {
+  const servicios = cache.servicios;
+  document.getElementById('servicios-subtitle').textContent = `${servicios.length} servicio${servicios.length!==1?'s':''}`;
+  if(!servicios.length){document.getElementById('servicios-list').innerHTML=`<div class="empty"><div class="icon">📦</div><h3>Sin servicios</h3><p>Toca + para agregar</p></div>`;return;}
+  document.getElementById('servicios-list').innerHTML = servicios.map(sv => {
+    const clientesActivos = cache.clientes.filter(c => c.servicioId===sv.id && c.estado==='🟢 Activo').length;
+    const margen = (sv.precioVenta||0) - (sv.costoMensual||0);
+    const margenPct = sv.costoMensual ? ((margen/sv.costoMensual)*100).toFixed(0) : 0;
+    const maxC = sv.maxClientes||1;
+    const disponible = maxC - clientesActivos;
+    const puntoEq = sv.costoMensual && sv.precioVenta ? Math.ceil(sv.costoMensual/sv.precioVenta) : 0;
+    const rentable = clientesActivos >= puntoEq;
+    const fillPct = Math.min(100, (clientesActivos/maxC)*100);
+    return `<div class="service-card ${rentable?'green':'yellow'}" data-edit-servicio="${sv.id}">
+      <div class="s-header"><div><div class="s-name">${sv.nombre}</div><div style="font-size:11px;color:var(--text2);margin-top:2px">${sv.categoria||''} · ${sv.tipo||''}</div></div><span class="badge ${rentable?'green':'yellow'}">${rentable?'✅ Rentable':'⚠️ En riesgo'}</span></div>
+      <div class="s-stats">
+        <div class="s-stat"><div class="sv" style="color:var(--red)">S/. ${sv.costoMensual||0}</div><div class="sk">Costo</div></div>
+        <div class="s-stat"><div class="sv" style="color:var(--blue)">S/. ${sv.precioVenta||0}</div><div class="sk">Venta</div></div>
+        <div class="s-stat"><div class="sv" style="color:var(--green)">+S/. ${margen.toFixed(0)}</div><div class="sk">Margen (${margenPct}%)</div></div>
+      </div>
+      <div style="margin-top:12px;display:flex;justify-content:space-between"><span style="font-size:12px;color:var(--text2)">👥 ${clientesActivos}/${maxC} · ${disponible} libre${disponible!==1?'s':''}</span><span style="font-size:12px;color:var(--text2)">Eq: ${puntoEq}</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${fillPct}%;background:${rentable?'var(--green)':'var(--yellow)'}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderGastos() {
+  const gastos = cache.gastos.filter(g => g.mes===MONTHS[currentMonth] && parseInt(g.anio)===currentYear);
+  const total = gastos.reduce((s,g)=>s+(g.monto||0),0);
+  document.getElementById('gastos-subtitle').textContent = `Total ${MONTHS[currentMonth]}: S/. ${total.toFixed(2)}`;
+  if(!gastos.length){document.getElementById('gastos-list').innerHTML=`<div class="empty"><div class="icon">💸</div><h3>Sin gastos</h3><p>Toca + para registrar</p></div>`;return;}
+  document.getElementById('gastos-list').innerHTML = gastos.map(g => {
+    const servicio = cache.servicios.find(s => s.id === g.servicioId);
+    return `<div class="card" data-edit-gasto="${g.id}">
+      <div class="list-item" style="border:none;padding:0">
+        <div class="avatar">💸</div>
+        <div class="info"><div class="name">${servicio?.nombre||'Servicio'}</div><div class="sub">${g.metodo||''} · ${g.fecha||g.mes+' '+g.anio}</div></div>
+        <div class="right"><div class="amount" style="color:var(--red)">−S/. ${(g.monto||0).toFixed(2)}</div>${g.vencimiento?`<div style="font-size:11px;color:var(--text2)">Vence: ${g.vencimiento}</div>`:''}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// MODALES
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); editingId = null; }
+
+function populateServiciosSelect(selectId, selectedId=null) {
+  const el = document.getElementById(selectId);
+  el.innerHTML = cache.servicios.length ? cache.servicios.map(s=>`<option value="${s.id}" ${s.id===selectedId?'selected':''}>${s.nombre}</option>`).join('') : '<option value="">— Sin servicios —</option>';
+}
+function populateClientesSelect(selectedId=null) {
+  const el = document.getElementById('pg-cliente');
+  el.innerHTML = cache.clientes.length ? cache.clientes.map(c=>`<option value="${c.id}" ${c.id===selectedId?'selected':''}>${c.nombre}</option>`).join('') : '<option value="">— Sin clientes —</option>';
+}
+
+// SERVICIO
+function newServicio() { editingId=null; document.getElementById('modal-servicio-title').textContent='Nuevo Servicio'; ['sv-nombre','sv-costo','sv-precio','sv-renovacion','sv-notas'].forEach(id=>document.getElementById(id).value=''); document.getElementById('sv-categoria').value='Streaming'; document.getElementById('sv-tipo').value='Individual'; document.getElementById('sv-max').value='1'; document.getElementById('sv-delete').style.display='none'; openModal('modal-servicio'); }
+function editServicio(id) { const sv=cache.servicios.find(s=>s.id===id); if(!sv)return; editingId=id; document.getElementById('modal-servicio-title').textContent='Editar Servicio'; document.getElementById('sv-nombre').value=sv.nombre||''; document.getElementById('sv-categoria').value=sv.categoria||'Streaming'; document.getElementById('sv-tipo').value=sv.tipo||'Individual'; document.getElementById('sv-costo').value=sv.costoMensual||''; document.getElementById('sv-precio').value=sv.precioVenta||''; document.getElementById('sv-max').value=sv.maxClientes||1; document.getElementById('sv-renovacion').value=sv.renovacion||''; document.getElementById('sv-notas').value=sv.notas||''; document.getElementById('sv-delete').style.display='block'; openModal('modal-servicio'); }
+async function saveServicio() {
+  const nombre = document.getElementById('sv-nombre').value.trim();
+  if(!nombre){toast('⚠️ Ingresa el nombre');return;}
+  const data = { nombre, categoria:document.getElementById('sv-categoria').value, tipo:document.getElementById('sv-tipo').value, costo_mensual:parseFloat(document.getElementById('sv-costo').value)||0, precio_venta:parseFloat(document.getElementById('sv-precio').value)||0, max_clientes:parseInt(document.getElementById('sv-max').value)||1, renovacion:document.getElementById('sv-renovacion').value||null, notas:document.getElementById('sv-notas').value };
+  let r;
+  if(editingId) r = await db.from('servicios').update(data).eq('id',editingId);
+  else r = await db.from('servicios').insert({id:uid(),...data});
+  if(r.error){toast('❌ '+r.error.message);return;}
+  await loadAll(); closeModal('modal-servicio'); toast('✅ Guardado'); render();
+}
+async function deleteServicio() { if(!editingId||!confirm('¿Eliminar servicio?'))return; const r=await db.from('servicios').delete().eq('id',editingId); if(r.error){toast('❌ '+r.error.message);return;} await loadAll(); closeModal('modal-servicio'); toast('🗑️ Eliminado'); render(); }
+
+// CLIENTE
+function newCliente() { editingId=null; document.getElementById('modal-cliente-title').textContent='Nuevo Cliente'; ['cl-nombre','cl-alias','cl-contacto','cl-precio','cl-dia','cl-notas'].forEach(id=>document.getElementById(id).value=''); document.getElementById('cl-estado').value='🟢 Activo'; document.getElementById('cl-comportamiento').value='✅ Puntual'; document.getElementById('cl-inicio').value=new Date().toISOString().split('T')[0]; document.getElementById('cl-delete').style.display='none'; populateServiciosSelect('cl-servicio'); openModal('modal-cliente'); }
+function editCliente(id) { const c=cache.clientes.find(x=>x.id===id); if(!c)return; editingId=id; document.getElementById('modal-cliente-title').textContent='Editar Cliente'; document.getElementById('cl-nombre').value=c.nombre||''; document.getElementById('cl-alias').value=c.alias||''; document.getElementById('cl-contacto').value=c.contacto||''; document.getElementById('cl-precio').value=c.precioAcordado||''; document.getElementById('cl-dia').value=c.diaPago||''; document.getElementById('cl-estado').value=c.estado||'🟢 Activo'; document.getElementById('cl-comportamiento').value=c.comportamiento||'✅ Puntual'; document.getElementById('cl-inicio').value=c.fechaInicio||''; document.getElementById('cl-notas').value=c.notas||''; document.getElementById('cl-delete').style.display='block'; populateServiciosSelect('cl-servicio',c.servicioId); openModal('modal-cliente'); }
+async function saveCliente() {
+  const nombre = document.getElementById('cl-nombre').value.trim();
+  if(!nombre){toast('⚠️ Ingresa el nombre');return;}
+  const data = { nombre, alias:document.getElementById('cl-alias').value, contacto:document.getElementById('cl-contacto').value, servicio_id:document.getElementById('cl-servicio').value||null, precio_acordado:parseFloat(document.getElementById('cl-precio').value)||0, dia_pago:parseInt(document.getElementById('cl-dia').value)||1, estado:document.getElementById('cl-estado').value, comportamiento:document.getElementById('cl-comportamiento').value, fecha_inicio:document.getElementById('cl-inicio').value||null, notas:document.getElementById('cl-notas').value };
+  let r;
+  if(editingId) r = await db.from('clientes').update(data).eq('id',editingId);
+  else r = await db.from('clientes').insert({id:uid(),...data});
+  if(r.error){toast('❌ '+r.error.message);return;}
+  await loadAll(); closeModal('modal-cliente'); toast('✅ Guardado'); render();
+}
+async function deleteCliente() { if(!editingId||!confirm('¿Eliminar cliente?'))return; const r=await db.from('clientes').delete().eq('id',editingId); if(r.error){toast('❌ '+r.error.message);return;} await loadAll(); closeModal('modal-cliente'); toast('🗑️ Eliminado'); render(); }
+
+// PAGO
+function onClienteChange() { const cid=document.getElementById('pg-cliente').value; const c=cache.clientes.find(x=>x.id===cid); if(c){ document.getElementById('pg-monto-esperado').value=c.precioAcordado||''; populateServiciosSelect('pg-servicio',c.servicioId); if(c.diaPago){const d=new Date(currentYear,currentMonth,c.diaPago); document.getElementById('pg-fecha-esperada').value=d.toISOString().split('T')[0];} } }
+function newPago() { editingId=null; document.getElementById('modal-pago-title').textContent='Registrar Pago'; populateClientesSelect(); populateServiciosSelect('pg-servicio'); document.getElementById('pg-mes').value=MONTHS[currentMonth]; document.getElementById('pg-anio').value=currentYear; document.getElementById('pg-fecha-esperada').value=''; document.getElementById('pg-fecha-real').value=new Date().toISOString().split('T')[0]; document.getElementById('pg-monto-esperado').value=''; document.getElementById('pg-monto-pagado').value=''; document.getElementById('pg-meses').value=1; document.getElementById('pg-metodo').value='Yape'; document.getElementById('pg-notas').value=''; document.getElementById('pg-delete').style.display='none'; onClienteChange(); openModal('modal-pago'); }
+function editPago(id) { const p=cache.pagos.find(x=>x.id===id); if(!p)return; editingId=id; document.getElementById('modal-pago-title').textContent='Editar Pago'; populateClientesSelect(p.clienteId); populateServiciosSelect('pg-servicio',p.servicioId); document.getElementById('pg-mes').value=p.mesCorrespondiente||MONTHS[currentMonth]; document.getElementById('pg-anio').value=p.anio||currentYear; document.getElementById('pg-fecha-esperada').value=p.fechaEsperada||''; document.getElementById('pg-fecha-real').value=p.fechaReal||''; document.getElementById('pg-monto-esperado').value=p.montoEsperado||''; document.getElementById('pg-monto-pagado').value=p.montoPagado||''; document.getElementById('pg-meses').value=p.mesesCubiertos||1; document.getElementById('pg-metodo').value=p.metodo||'Yape'; document.getElementById('pg-notas').value=p.notas||''; document.getElementById('pg-delete').style.display='block'; openModal('modal-pago'); }
+async function savePago() {
+  const cid = document.getElementById('pg-cliente').value;
+  if(!cid){toast('⚠️ Selecciona un cliente');return;}
+  const data = { cliente_id:cid, servicio_id:document.getElementById('pg-servicio').value||null, mes_correspondiente:document.getElementById('pg-mes').value, anio:parseInt(document.getElementById('pg-anio').value), fecha_esperada:document.getElementById('pg-fecha-esperada').value||null, fecha_real:document.getElementById('pg-fecha-real').value||null, monto_esperado:parseFloat(document.getElementById('pg-monto-esperado').value)||0, monto_pagado:parseFloat(document.getElementById('pg-monto-pagado').value)||0, meses_cubiertos:parseInt(document.getElementById('pg-meses').value)||1, metodo:document.getElementById('pg-metodo').value, notas:document.getElementById('pg-notas').value };
+  let r;
+  if(editingId) r = await db.from('pagos').update(data).eq('id',editingId);
+  else r = await db.from('pagos').insert({id:uid(),...data});
+  if(r.error){toast('❌ '+r.error.message);return;}
+  await loadAll(); closeModal('modal-pago'); toast('✅ Guardado'); render();
+}
+async function deletePago() { if(!editingId||!confirm('¿Eliminar pago?'))return; const r=await db.from('pagos').delete().eq('id',editingId); if(r.error){toast('❌ '+r.error.message);return;} await loadAll(); closeModal('modal-pago'); toast('🗑️ Eliminado'); render(); }
+
+// GASTO
+function newGasto() { editingId=null; document.getElementById('modal-gasto-title').textContent='Nuevo Gasto'; populateServiciosSelect('gs-servicio'); document.getElementById('gs-mes').value=MONTHS[currentMonth]; document.getElementById('gs-anio').value=currentYear; document.getElementById('gs-monto').value=''; document.getElementById('gs-metodo').value='Tarjeta'; document.getElementById('gs-fecha').value=new Date().toISOString().split('T')[0]; document.getElementById('gs-vencimiento').value=''; document.getElementById('gs-notas').value=''; document.getElementById('gs-delete').style.display='none'; openModal('modal-gasto'); }
+function editGasto(id) { const g=cache.gastos.find(x=>x.id===id); if(!g)return; editingId=id; document.getElementById('modal-gasto-title').textContent='Editar Gasto'; populateServiciosSelect('gs-servicio',g.servicioId); document.getElementById('gs-mes').value=g.mes||MONTHS[currentMonth]; document.getElementById('gs-anio').value=g.anio||currentYear; document.getElementById('gs-monto').value=g.monto||''; document.getElementById('gs-metodo').value=g.metodo||'Tarjeta'; document.getElementById('gs-fecha').value=g.fecha||''; document.getElementById('gs-vencimiento').value=g.vencimiento||''; document.getElementById('gs-notas').value=g.notas||''; document.getElementById('gs-delete').style.display='block'; openModal('modal-gasto'); }
+async function saveGasto() {
+  const sid = document.getElementById('gs-servicio').value;
+  if(!sid){toast('⚠️ Selecciona un servicio');return;}
+  const data = { servicio_id:sid, mes:document.getElementById('gs-mes').value, anio:parseInt(document.getElementById('gs-anio').value), monto:parseFloat(document.getElementById('gs-monto').value)||0, metodo:document.getElementById('gs-metodo').value, fecha:document.getElementById('gs-fecha').value||null, vencimiento:document.getElementById('gs-vencimiento').value||null, notas:document.getElementById('gs-notas').value };
+  let r;
+  if(editingId) r = await db.from('gastos').update(data).eq('id',editingId);
+  else r = await db.from('gastos').insert({id:uid(),...data});
+  if(r.error){toast('❌ '+r.error.message);return;}
+  await loadAll(); closeModal('modal-gasto'); toast('✅ Guardado'); render();
+}
+async function deleteGasto() { if(!editingId||!confirm('¿Eliminar gasto?'))return; const r=await db.from('gastos').delete().eq('id',editingId); if(r.error){toast('❌ '+r.error.message);return;} await loadAll(); closeModal('modal-gasto'); toast('🗑️ Eliminado'); render(); }
+
+function openAdd() { if(currentScreen==='pagos'){newPago();return;} if(currentScreen==='clientes'){newCliente();return;} if(currentScreen==='servicios'){newServicio();return;} if(currentScreen==='gastos'){newGasto();return;} openModal('modal-add'); }
+
+function toast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+
+// EVENTOS
+document.getElementById('login-btn').addEventListener('click', login);
+document.getElementById('login-password').addEventListener('keypress', e => { if(e.key==='Enter') login(); });
+document.getElementById('login-email').addEventListener('keypress', e => { if(e.key==='Enter') login(); });
+document.getElementById('btn-logout').addEventListener('click', logout);
+document.getElementById('month-prev').addEventListener('click', () => changeMonth(-1));
+document.getElementById('month-next').addEventListener('click', () => changeMonth(1));
+document.getElementById('fab').addEventListener('click', openAdd);
+document.querySelectorAll('.nav-btn').forEach(b => b.addEventListener('click', () => navigate(b.dataset.screen)));
+document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => closeModal(b.dataset.close)));
+document.querySelectorAll('.modal-overlay').forEach(el => el.addEventListener('click', e => { if(e.target===el) closeModal(el.id); }));
+document.getElementById('sv-save').addEventListener('click', saveServicio);
+document.getElementById('sv-delete').addEventListener('click', deleteServicio);
+document.getElementById('cl-save').addEventListener('click', saveCliente);
+document.getElementById('cl-delete').addEventListener('click', deleteCliente);
+document.getElementById('pg-save').addEventListener('click', savePago);
+document.getElementById('pg-delete').addEventListener('click', deletePago);
+document.getElementById('pg-cliente').addEventListener('change', onClienteChange);
+document.getElementById('gs-save').addEventListener('click', saveGasto);
+document.getElementById('gs-delete').addEventListener('click', deleteGasto);
+document.querySelectorAll('#pagos-tabs .chip').forEach(c => c.addEventListener('click', () => { pagosFilter=c.dataset.f; document.querySelectorAll('#pagos-tabs .chip').forEach(x=>x.classList.remove('active')); c.classList.add('active'); renderPagos(); }));
+document.querySelectorAll('#clientes-tabs .chip').forEach(c => c.addEventListener('click', () => { clientesFilter=c.dataset.f; document.querySelectorAll('#clientes-tabs .chip').forEach(x=>x.classList.remove('active')); c.classList.add('active'); renderClientes(); }));
+document.querySelectorAll('.add-opt').forEach(b => b.addEventListener('click', () => { closeModal('modal-add'); const t=b.dataset.add; if(t==='pago')newPago(); if(t==='cliente')newCliente(); if(t==='servicio')newServicio(); if(t==='gasto')newGasto(); }));
+
+// CLICKS PARA EDITAR (delegación)
+document.body.addEventListener('click', e => {
+  const p = e.target.closest('[data-edit-pago]'); if(p){editPago(p.dataset.editPago);return;}
+  const c = e.target.closest('[data-edit-cliente]'); if(c){editCliente(c.dataset.editCliente);return;}
+  const s = e.target.closest('[data-edit-servicio]'); if(s){editServicio(s.dataset.editServicio);return;}
+  const g = e.target.closest('[data-edit-gasto]'); if(g){editGasto(g.dataset.editGasto);return;}
+});
+
+// INIT: ver si ya hay sesión
+(async () => {
+  const { data: { session } } = await db.auth.getSession();
+  if(session) initApp();
+})();
+</script>
 </body>
 </html>
